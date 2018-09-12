@@ -1,6 +1,6 @@
 const express = require('express');
 const logger = require('./utils/logger');
-const { CustomError, ResourceNotFound } = require('./utils/errors');
+const { HttpError, ResourceNotFound } = require('./utils/errors');
 const config = require('./config');
 
 const app = express();
@@ -13,14 +13,14 @@ app.use(require('./routes/index'));
 
 // Handle 404
 app.use((req, res, next) => {
-  throw new ResourceNotFound('Not found');
+  next(new ResourceNotFound('Route not found'));
 });
 
 // Handle errors
 app.use((err, req, res, next) => {
-  const error = CustomError.fromObject(err);
+  const error = HttpError.fromObject(err);
   logger.error(error);
-  return res.status(error.status).send(error.toJson());
+  return res.status(error.status).send(error.expose());
 });
 
 const server = app.listen(config.port, () => {
